@@ -18,6 +18,10 @@ def find_all_substring_of_length(input_string, length):
 
     return return_list
 
+#def find_all_prefix_substrings(input_string):
+#    return_list = []
+#    for i in range(
+
 def find_resolveable_peptides(peptide_mass_map, ppm_tolerance):
     print "ppm_tolerance " + str(ppm_tolerance)
 
@@ -73,7 +77,8 @@ def main():
         #print table_data["Peptides"][i]
         for length in range(10):
             peptide = table_data["Peptides"][i]
-            substrings = find_all_substring_of_length(peptide, length + 4)
+            #substrings = find_all_substring_of_length(peptide, length + 4)
+            substrings = [peptide[:length+4], peptide[length+4:]]
             #print peptide + "\t" + str(substrings)
             all_sub_peptides += substrings
 
