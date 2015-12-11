@@ -23,7 +23,8 @@ def find_all_substring_of_length(input_string, length):
 #    for i in range(
 
 def find_resolveable_peptides(peptide_mass_map, ppm_tolerance):
-    print "ppm_tolerance " + str(ppm_tolerance)
+    #print "ppm_tolerance " + str(ppm_tolerance)
+    print "Resolaveability\tPeptide\tm/z"
 
     peptide_mass_list = []
     for peptide in peptide_mass_map:
