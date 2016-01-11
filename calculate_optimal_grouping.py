@@ -6,7 +6,7 @@ import os
 import ming_fileio_library
 import maxflow
 
-RT_BINS_IN_SECONDS = 5.0
+RT_BINS_IN_SECONDS = 10.0
 
 def usage():
     print "<input results file> <input all whole peptides>"
@@ -118,22 +118,42 @@ def partition_peptides(full_peptides_to_rt, number_partitions):
     partition_peptides_unsorted(full_peptides_to_rt, number_partitions)
 
 
-#Returns the rt_timeline_list
-def partition_peptides_unsorted(full_peptides_to_rt, number_partitions):
-    rt_timeline_list = []
+#Returns partition of peptides as a list, randomly assigning them
+def partition_peptides_random(full_peptides_to_rt, number_partitions):
+    peptide_lists = []
+    for i in range(number_partitions):
+        peptide_lists.append([])
 
-    for i in range(int(60 * 120 / RT_BINS_IN_SECONDS)):
-        rt_timeline_list.append(set())
-
-    #Lets do a greedy thing
+    #Randomly partition
+    peptide_number = 0
     for peptide in full_peptides_to_rt:
-        #print peptide + "\t" + str(full_peptides_to_rt[peptide])
-        add_peptide_to_rt_timeline_list(rt_timeline_list, full_peptides_to_rt[peptide])
-        #print peptide + "\t" + str(get_number_of_unique_rt_windows(full_peptides_to_rt[peptide]))
+        partition_index = peptide_number % number_partitions
+        peptide_number += 1
+        peptide_lists[partition_index].append(peptide)
 
-    print count_number_of_unique_products(rt_timeline_list)
+    return peptide_lists
 
-    return rt_timeline_list
+#Returns partition of peptides as a list, alternating most abundant products
+def partition_peptides_number_products(full_peptides_to_rt, number_partitions):
+    peptide_lists = []
+    for i in range(number_partitions):
+        peptide_lists.append([])
+
+    peptide_sorting_list = []
+    #Randomly partition
+    for peptide in full_peptides_to_rt:
+        peptide_sorting_list.append([peptide, len(full_peptides_to_rt[peptide])])
+
+    peptide_sorting_list = sorted(peptide_sorting_list, key=lambda peptide: peptide[1], reverse=True)
+    print peptide_sorting_list
+
+    peptide_number = 0
+    for peptide in peptide_sorting_list:
+        partition_index = peptide_number % number_partitions
+        peptide_number += 1
+        peptide_lists[partition_index].append(peptide[0])
+
+    return peptide_lists
 
 
 def count_number_of_acquireable_products(peptide_list, peptide_to_product_rt):
@@ -173,7 +193,7 @@ def count_number_of_acquireable_products(peptide_list, peptide_to_product_rt):
     for rt_index in rt_to_node_idx_mapping:
         graph.add_tedge(rt_to_node_idx_mapping[rt_index], 0, 1)
 
-    print graph.maxflow()
+    return graph.maxflow()
 
 def main():
     input_results_filename = sys.argv[1]
@@ -184,8 +204,17 @@ def main():
     all_peptides = table_data["Peptides"]
 
     full_peptides_to_rt = map_products_to_peptide_rt(products_to_rt_map, all_peptides)
-    count_number_of_acquireable_products(all_peptides, full_peptides_to_rt)
-    #partition_peptides(full_peptides_to_rt, 2)
+    partitioned_peptide_list = partition_peptides_random(full_peptides_to_rt, 3)
+    #partitioned_peptide_list = partition_peptides_number_products(full_peptides_to_rt, 3)
+
+    print "Total Products: " + str(len(products_to_rt_map))
+    total_detectable_products = 0
+    for peptide_list in partitioned_peptide_list:
+        number_products_detectable = count_number_of_acquireable_products(peptide_list, full_peptides_to_rt)
+        print number_products_detectable
+        total_detectable_products += number_products_detectable
+    print "Total Products Detectable: " + str(total_detectable_products)
+
 
 
 
