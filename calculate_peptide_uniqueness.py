@@ -76,8 +76,9 @@ def main():
 
     for i in range(line_counts):
         #print table_data["Peptides"][i]
+        peptide = table_data["Peptides"][i]
+        all_sub_peptides.append(peptide)
         for length in range(10):
-            peptide = table_data["Peptides"][i]
             #substrings = find_all_substring_of_length(peptide, length + 4)
             substrings = [peptide[:length+4], peptide[length+4:]]
             #print peptide + "\t" + str(substrings)

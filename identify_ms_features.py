@@ -37,6 +37,8 @@ def load_features_table(input_filename):
     return feature_list
 
 def identify_features(masses_list, features_list, ppm_tolerance):
+    unambiguously_identified = []
+
     for feature in features_list:
         print "Looking for: " + str(feature.mz)
         mz = feature.mz
@@ -46,6 +48,12 @@ def identify_features(masses_list, features_list, ppm_tolerance):
         if len(identifications) > 0:
             print identifications
 
+        if len(identifications) == 1:
+            unambiguously_identified += identifications
+
+
+
+
 
         #for mass_obj in masses_list:
             #print mass_obj[2]
@@ -53,6 +61,10 @@ def identify_features(masses_list, features_list, ppm_tolerance):
         #    if mz < mass_obj[2]:
         #        print str(mz) + '\t' + str(mass_obj[2])
         #        print "FOUND"
+
+    for identification in unambiguously_identified:
+        print "IDENTIFICATION\t" + identification
+
 
 def identify_mass(mass_input, masses_list, ppm_tolerance):
     number_of_masses = len(masses_list)
