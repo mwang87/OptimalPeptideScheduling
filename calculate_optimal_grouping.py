@@ -4,6 +4,7 @@ import sys
 import getopt
 import os
 import ming_fileio_library
+import maxflow
 
 RT_BINS_IN_SECONDS = 5.0
 
@@ -81,6 +82,9 @@ def count_number_of_unique_products(rt_timeline_list):
 
     return len(set(unique_cell_products))
 
+
+
+
 def count_number_of_empty_rt_slots(rt_timeline_list):
     empty_cell_count = 0
     cell_count = 0
@@ -131,16 +135,57 @@ def partition_peptides_unsorted(full_peptides_to_rt, number_partitions):
 
     return rt_timeline_list
 
+
+def count_number_of_acquireable_products(peptide_list, peptide_to_product_rt):
+    graph = maxflow.GraphInt()
+
+    #Doing bipartite matching
+    product_to_node_idx_mapping = {}
+    rt_to_node_idx_mapping = {}
+    for peptide in peptide_list:
+        if not peptide in peptide_to_product_rt:
+            continue
+
+        product_list = peptide_to_product_rt[peptide]
+        for product in product_list:
+            if not product in product_to_node_idx_mapping:
+                #insert it into the graph
+                node_added = graph.add_nodes(1)
+                #print node_added[0]
+                product_to_node_idx_mapping[product] = node_added[0]
+
+            for rt in product_list[product]:
+                #print rt
+                rt_index = int(rt/RT_BINS_IN_SECONDS)
+                #print rt_index
+                if not rt_index in rt_to_node_idx_mapping:
+                    node_added = graph.add_nodes(1)
+                    rt_to_node_idx_mapping[rt_index] = node_added[0]
+
+                #Create edge between product and the rt
+                graph.add_edge(rt_to_node_idx_mapping[rt_index], product_to_node_idx_mapping[product], 1, 1)
+
+    #Adding connections to sources
+    for product in product_to_node_idx_mapping:
+        graph.add_tedge(product_to_node_idx_mapping[product], 1, 0)
+
+    #Adding connections to sink
+    for rt_index in rt_to_node_idx_mapping:
+        graph.add_tedge(rt_to_node_idx_mapping[rt_index], 0, 1)
+
+    print graph.maxflow()
+
 def main():
     input_results_filename = sys.argv[1]
     input_peptide_list_filename = sys.argv[2]
 
-    peptide_to_rt_map = parse_identification_file(input_results_filename)
+    products_to_rt_map = parse_identification_file(input_results_filename)
     line_counts, table_data = ming_fileio_library.parse_table_with_headers(input_peptide_list_filename)
     all_peptides = table_data["Peptides"]
 
-    full_peptides_to_rt = map_products_to_peptide_rt(peptide_to_rt_map, all_peptides)
-    partition_peptides(full_peptides_to_rt, 2)
+    full_peptides_to_rt = map_products_to_peptide_rt(products_to_rt_map, all_peptides)
+    count_number_of_acquireable_products(all_peptides, full_peptides_to_rt)
+    #partition_peptides(full_peptides_to_rt, 2)
 
 
 
