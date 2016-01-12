@@ -211,9 +211,14 @@ def main():
     total_detectable_products = 0
     for peptide_list in partitioned_peptide_list:
         number_products_detectable = count_number_of_acquireable_products(peptide_list, full_peptides_to_rt)
-        print number_products_detectable
+        #print number_products_detectable
         total_detectable_products += number_products_detectable
     print "Total Products Detectable: " + str(total_detectable_products)
+
+    for peptide_list in partitioned_peptide_list:
+        print "Partition================="
+        for peptide in peptide_list:
+            print peptide
 
 
 
